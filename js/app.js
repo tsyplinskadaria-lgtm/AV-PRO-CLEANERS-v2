@@ -30,17 +30,23 @@
         const isMobile = () => window.innerWidth <= 1200;
         topItems.forEach((item => {
             const link = item.querySelector(":scope > .menu__link");
-            link?.querySelector("i");
+            const hasDropdown = !!item.querySelector(":scope > .menu__dropdown");
             item.addEventListener("mouseenter", (() => {
                 if (isMobile()) return;
                 clearTimeout(topHideTimeout);
                 topItems.forEach((el => {
-                    if (el !== item) el.classList.remove("active");
+                    if (el !== item) {
+                        el.classList.remove("active");
+                        el.querySelectorAll(".active").forEach((sub => {
+                            sub.classList.remove("active");
+                        }));
+                    }
                 }));
-                item.classList.add("active");
+                if (hasDropdown) item.classList.add("active");
             }));
             item.addEventListener("mouseleave", (() => {
                 if (isMobile()) return;
+                if (!hasDropdown) return;
                 topHideTimeout = setTimeout((() => {
                     item.classList.remove("active");
                     item.querySelectorAll(".active").forEach((el => {
@@ -48,7 +54,7 @@
                     }));
                 }), 1500);
             }));
-            if (link) link.addEventListener("click", (e => {
+            if (link && hasDropdown) link.addEventListener("click", (e => {
                 if (!isMobile()) return;
                 const href = link.getAttribute("href");
                 if (e.target.closest("i")) {
@@ -74,7 +80,6 @@
         }));
         nestedItems.forEach((item => {
             const link = item.querySelector(":scope > a");
-            link?.querySelector("i");
             item.addEventListener("mouseenter", (() => {
                 if (isMobile()) return;
                 clearTimeout(nestedHideTimeout);
@@ -244,31 +249,6 @@
             }
         }
     });
-    new Swiper(".before-after__slider-single", {
-        slidesPerView: 3,
-        speed: 500,
-        spaceBetween: 20,
-        navigation: {
-            nextEl: ".before-after__next",
-            prevEl: ".before-after__prev"
-        },
-        pagination: {
-            el: ".swiper-pagination",
-            clickable: true
-        },
-        allowTouchMove: false,
-        breakpoints: {
-            0: {
-                slidesPerView: 1
-            },
-            600: {
-                slidesPerView: 2
-            },
-            992: {
-                slidesPerView: 3
-            }
-        }
-    });
     document.querySelectorAll(".compare").forEach((compare => {
         const line = compare.querySelector(".compare__line");
         const after = compare.querySelector(".compare__after");
@@ -306,6 +286,190 @@
                 clientX: e.touches[0].clientX
             });
         }));
+    }));
+    document.addEventListener("DOMContentLoaded", (() => {
+        const slider = document.querySelector(".before-after__slider-single");
+        const pagination = document.querySelector(".before-after__pagination");
+        const prevBtn = document.querySelector(".before-after__prev");
+        const nextBtn = document.querySelector(".before-after__next");
+        if (!slider || !pagination || !prevBtn || !nextBtn || typeof Swiper === "undefined") return;
+        const slidesCount = slider.querySelectorAll(".swiper-slide").length;
+        const dotsCount = Math.min(5, slidesCount);
+        pagination.innerHTML = "";
+        const dots = [];
+        for (let i = 0; i < dotsCount; i++) {
+            const dot = document.createElement("span");
+            dot.className = "before-after-dot";
+            dot.addEventListener("click", (() => {
+                const currentCycle = Math.floor(beforeAfterSwiper.realIndex / dotsCount);
+                let target = currentCycle * dotsCount + i;
+                if (target >= slidesCount) target = slidesCount - 1;
+                beforeAfterSwiper.slideTo(target);
+            }));
+            pagination.appendChild(dot);
+            dots.push(dot);
+        }
+        const beforeAfterSwiper = new Swiper(slider, {
+            slidesPerView: 3,
+            spaceBetween: 20,
+            speed: 500,
+            loop: true,
+            watchOverflow: true,
+            allowTouchMove: false,
+            navigation: {
+                nextEl: nextBtn,
+                prevEl: prevBtn,
+                disabledClass: "is-disabled"
+            },
+            pagination: false,
+            breakpoints: {
+                0: {
+                    slidesPerView: 1.3,
+                    spaceBetween: 15
+                },
+                600: {
+                    slidesPerView: 2,
+                    spaceBetween: 15
+                },
+                992: {
+                    slidesPerView: 3,
+                    spaceBetween: 20
+                }
+            },
+            on: {
+                init(swiper) {
+                    updateDots(swiper);
+                    updateButtons(swiper);
+                    toggleControls(swiper);
+                },
+                slideChange(swiper) {
+                    updateDots(swiper);
+                    updateButtons(swiper);
+                },
+                resize(swiper) {
+                    toggleControls(swiper);
+                    updateButtons(swiper);
+                },
+                lock(swiper) {
+                    toggleControls(swiper);
+                },
+                unlock(swiper) {
+                    toggleControls(swiper);
+                }
+            }
+        });
+        function updateDots(swiper) {
+            dots.forEach((dot => dot.classList.remove("active")));
+            if (!dots.length) return;
+            const activeDot = swiper.realIndex % dotsCount;
+            dots[activeDot]?.classList.add("active");
+        }
+        function updateButtons(swiper) {
+            prevBtn.classList.toggle("is-disabled", swiper.isBeginning);
+            nextBtn.classList.toggle("is-disabled", swiper.isEnd);
+        }
+        function toggleControls(swiper) {
+            const hide = swiper.isLocked;
+            pagination.style.display = hide ? "none" : "";
+            prevBtn.style.display = hide ? "none" : "";
+            nextBtn.style.display = hide ? "none" : "";
+        }
+    }));
+    document.addEventListener("DOMContentLoaded", (() => {
+        const path = window.location.pathname;
+        document.querySelectorAll(".menu__item > a").forEach((link => {
+            const href = link.getAttribute("href");
+            if (!href || href === "#!") return;
+            if (path.endsWith(href)) link.closest(".menu__item")?.classList.add("current");
+        }));
+        if (path.includes("services-single")) document.querySelector('.menu__item > a[href="services.html"]')?.closest(".menu__item")?.classList.add("current");
+    }));
+    document.addEventListener("DOMContentLoaded", (() => {
+        const slider = document.querySelector(".reviews__slider");
+        const pagination = document.querySelector(".reviews__pagination");
+        const prevBtn = document.querySelector(".reviews__prev");
+        const nextBtn = document.querySelector(".reviews__next");
+        if (!slider || !pagination || !prevBtn || !nextBtn || typeof Swiper === "undefined") return;
+        const slidesCount = slider.querySelectorAll(".swiper-slide").length;
+        const dotsCount = Math.min(5, slidesCount);
+        pagination.innerHTML = "";
+        const dots = [];
+        for (let i = 0; i < dotsCount; i++) {
+            const dot = document.createElement("span");
+            dot.className = "reviews-dot";
+            dot.addEventListener("click", (() => {
+                const currentCycle = Math.floor(reviewsSwiper.realIndex / dotsCount);
+                let target = currentCycle * dotsCount + i;
+                if (target >= slidesCount) target = slidesCount - 1;
+                reviewsSwiper.slideTo(target);
+            }));
+            pagination.appendChild(dot);
+            dots.push(dot);
+        }
+        const reviewsSwiper = new Swiper(slider, {
+            slidesPerView: 3,
+            spaceBetween: 20,
+            speed: 700,
+            loop: true,
+            watchOverflow: true,
+            navigation: {
+                nextEl: nextBtn,
+                prevEl: prevBtn,
+                disabledClass: "is-disabled"
+            },
+            pagination: false,
+            breakpoints: {
+                0: {
+                    slidesPerView: 1,
+                    spaceBetween: 15
+                },
+                768: {
+                    slidesPerView: 2,
+                    spaceBetween: 15
+                },
+                1200: {
+                    slidesPerView: 3,
+                    spaceBetween: 20
+                }
+            },
+            on: {
+                init(swiper) {
+                    updateDots(swiper);
+                    updateButtons(swiper);
+                    toggleControls(swiper);
+                },
+                slideChange(swiper) {
+                    updateDots(swiper);
+                    updateButtons(swiper);
+                },
+                resize(swiper) {
+                    toggleControls(swiper);
+                    updateButtons(swiper);
+                },
+                lock(swiper) {
+                    toggleControls(swiper);
+                },
+                unlock(swiper) {
+                    toggleControls(swiper);
+                }
+            }
+        });
+        function updateDots(swiper) {
+            dots.forEach((dot => dot.classList.remove("active")));
+            if (!dots.length) return;
+            const activeDot = swiper.realIndex % dotsCount;
+            dots[activeDot]?.classList.add("active");
+        }
+        function updateButtons(swiper) {
+            prevBtn.classList.toggle("is-disabled", swiper.isBeginning);
+            nextBtn.classList.toggle("is-disabled", swiper.isEnd);
+        }
+        function toggleControls(swiper) {
+            const hide = swiper.isLocked;
+            pagination.style.display = hide ? "none" : "";
+            prevBtn.style.display = hide ? "none" : "";
+            nextBtn.style.display = hide ? "none" : "";
+        }
     }));
     window["FLS"] = true;
 })();
