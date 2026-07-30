@@ -125,34 +125,33 @@
         }));
     }));
     document.addEventListener("DOMContentLoaded", (() => {
-        const btn = document.querySelector(".open-menu");
+        const openBtn = document.querySelector(".open-menu");
+        const closeBtn = document.querySelector(".close-menu");
         const menu = document.querySelector(".menu-wrapper");
         const overlay = document.querySelector(".menu-overlay");
-        if (!btn || !menu) return;
+        if (!openBtn || !menu || !overlay) return;
         function openMenu() {
-            btn.classList.add("active");
             menu.classList.add("active");
             overlay.classList.add("active");
             document.body.classList.add("menu-open");
-            const icon = btn.querySelector("i");
-            icon.classList.remove("fa-bars");
-            icon.classList.add("fa-xmark");
         }
         function closeMenu() {
-            btn.classList.remove("active");
             menu.classList.remove("active");
             overlay.classList.remove("active");
             document.body.classList.remove("menu-open");
-            const icon = btn.querySelector("i");
-            icon.classList.remove("fa-xmark");
-            icon.classList.add("fa-bars");
         }
-        btn.addEventListener("click", (() => {
-            if (menu.classList.contains("active")) closeMenu(); else openMenu();
-        }));
+        openBtn.addEventListener("click", openMenu);
+        closeBtn?.addEventListener("click", closeMenu);
         overlay.addEventListener("click", closeMenu);
         window.addEventListener("resize", (() => {
             if (window.innerWidth > 1200) closeMenu();
+        }));
+        document.querySelectorAll(".menu a").forEach((link => {
+            link.addEventListener("click", (e => {
+                const item = link.closest(".menu__item--dropdown");
+                if (item && link.nextElementSibling?.classList.contains("menu__dropdown")) return;
+                closeMenu();
+            }));
         }));
     }));
     document.addEventListener("DOMContentLoaded", (() => {
