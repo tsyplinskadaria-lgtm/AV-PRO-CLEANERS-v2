@@ -1,6 +1,59 @@
 (() => {
     "use strict";
     document.addEventListener("DOMContentLoaded", (() => {
+        const timelines = document.querySelectorAll(".timeline");
+        if (!timelines.length) return;
+        timelines.forEach((timeline => {
+            const wrapper = timeline.querySelector(".timeline__wrapper");
+            const track = timeline.querySelector(".timeline__track");
+            const progress = timeline.querySelector(".timeline__progress");
+            const dot = timeline.querySelector(".timeline__dot");
+            const rows = [ ...timeline.querySelectorAll(".timeline__row") ];
+            let animationFrame = null;
+            function updateTimeline() {
+                const wrapperRect = wrapper.getBoundingClientRect();
+                const scrollY = window.pageYOffset;
+                const wrapperTop = wrapperRect.top + scrollY;
+                const wrapperHeight = wrapper.offsetHeight;
+                const lineHeight = track.offsetHeight;
+                const start = wrapperTop - window.innerHeight * .45;
+                const end = wrapperTop + wrapperHeight - window.innerHeight * .55;
+                let progressValue = (scrollY - start) / (end - start);
+                progressValue = Math.max(0, Math.min(progressValue, 1));
+                const currentY = progressValue * lineHeight;
+                dot.style.top = `${currentY}px`;
+                progress.style.height = `${currentY}px`;
+                rows.forEach((row => {
+                    const point = row.querySelector(".timeline__point");
+                    const card = row.querySelector(".timeline__card");
+                    if (!point || !card) return;
+                    const pointRect = point.getBoundingClientRect();
+                    const pointY = pointRect.top + scrollY - wrapperTop + point.offsetHeight / 2;
+                    if (currentY >= pointY && !card.classList.contains("show")) card.classList.add("show");
+                    point.classList.toggle("passed", currentY >= pointY);
+                }));
+                animationFrame = null;
+            }
+            function requestTick() {
+                if (animationFrame) return;
+                animationFrame = requestAnimationFrame(updateTimeline);
+            }
+            window.addEventListener("scroll", requestTick, {
+                passive: true
+            });
+            window.addEventListener("resize", requestTick);
+            updateTimeline();
+        }));
+    }));
+    if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+    window.addEventListener("load", (() => {
+        window.scrollTo({
+            top: 0,
+            left: 0,
+            behavior: "instant"
+        });
+    }));
+    document.addEventListener("DOMContentLoaded", (() => {
         const header = document.querySelector(".header");
         if (!header) return;
         let lastScroll = window.pageYOffset;
@@ -292,27 +345,11 @@
         const prevBtn = document.querySelector(".before-after__prev");
         const nextBtn = document.querySelector(".before-after__next");
         if (!slider || !pagination || !prevBtn || !nextBtn || typeof Swiper === "undefined") return;
-        const slidesCount = slider.querySelectorAll(".swiper-slide").length;
-        const dotsCount = Math.min(5, slidesCount);
-        pagination.innerHTML = "";
-        const dots = [];
-        for (let i = 0; i < dotsCount; i++) {
-            const dot = document.createElement("span");
-            dot.className = "before-after-dot";
-            dot.addEventListener("click", (() => {
-                const currentCycle = Math.floor(beforeAfterSwiper.realIndex / dotsCount);
-                let target = currentCycle * dotsCount + i;
-                if (target >= slidesCount) target = slidesCount - 1;
-                beforeAfterSwiper.slideTo(target);
-            }));
-            pagination.appendChild(dot);
-            dots.push(dot);
-        }
-        const beforeAfterSwiper = new Swiper(slider, {
+        new Swiper(slider, {
             slidesPerView: 3,
             spaceBetween: 20,
             speed: 500,
-            loop: true,
+            loop: false,
             watchOverflow: true,
             allowTouchMove: false,
             navigation: {
@@ -320,10 +357,15 @@
                 prevEl: prevBtn,
                 disabledClass: "is-disabled"
             },
-            pagination: false,
+            pagination: {
+                el: pagination,
+                clickable: true,
+                bulletClass: "before-after-dot",
+                bulletActiveClass: "active"
+            },
             breakpoints: {
                 0: {
-                    slidesPerView: 1.3,
+                    slidesPerView: 1,
                     spaceBetween: 15
                 },
                 600: {
@@ -337,17 +379,10 @@
             },
             on: {
                 init(swiper) {
-                    updateDots(swiper);
-                    updateButtons(swiper);
                     toggleControls(swiper);
-                },
-                slideChange(swiper) {
-                    updateDots(swiper);
-                    updateButtons(swiper);
                 },
                 resize(swiper) {
                     toggleControls(swiper);
-                    updateButtons(swiper);
                 },
                 lock(swiper) {
                     toggleControls(swiper);
@@ -357,16 +392,6 @@
                 }
             }
         });
-        function updateDots(swiper) {
-            dots.forEach((dot => dot.classList.remove("active")));
-            if (!dots.length) return;
-            const activeDot = swiper.realIndex % dotsCount;
-            dots[activeDot]?.classList.add("active");
-        }
-        function updateButtons(swiper) {
-            prevBtn.classList.toggle("is-disabled", swiper.isBeginning);
-            nextBtn.classList.toggle("is-disabled", swiper.isEnd);
-        }
         function toggleControls(swiper) {
             const hide = swiper.isLocked;
             pagination.style.display = hide ? "none" : "";
@@ -389,34 +414,23 @@
         const prevBtn = document.querySelector(".reviews__prev");
         const nextBtn = document.querySelector(".reviews__next");
         if (!slider || !pagination || !prevBtn || !nextBtn || typeof Swiper === "undefined") return;
-        const slidesCount = slider.querySelectorAll(".swiper-slide").length;
-        const dotsCount = Math.min(5, slidesCount);
-        pagination.innerHTML = "";
-        const dots = [];
-        for (let i = 0; i < dotsCount; i++) {
-            const dot = document.createElement("span");
-            dot.className = "reviews-dot";
-            dot.addEventListener("click", (() => {
-                const currentCycle = Math.floor(reviewsSwiper.realIndex / dotsCount);
-                let target = currentCycle * dotsCount + i;
-                if (target >= slidesCount) target = slidesCount - 1;
-                reviewsSwiper.slideTo(target);
-            }));
-            pagination.appendChild(dot);
-            dots.push(dot);
-        }
-        const reviewsSwiper = new Swiper(slider, {
+        new Swiper(slider, {
             slidesPerView: 3,
             spaceBetween: 20,
             speed: 700,
-            loop: true,
+            loop: false,
             watchOverflow: true,
             navigation: {
                 nextEl: nextBtn,
                 prevEl: prevBtn,
                 disabledClass: "is-disabled"
             },
-            pagination: false,
+            pagination: {
+                el: pagination,
+                clickable: true,
+                bulletClass: "reviews-dot",
+                bulletActiveClass: "active"
+            },
             breakpoints: {
                 0: {
                     slidesPerView: 1,
@@ -433,17 +447,10 @@
             },
             on: {
                 init(swiper) {
-                    updateDots(swiper);
-                    updateButtons(swiper);
                     toggleControls(swiper);
-                },
-                slideChange(swiper) {
-                    updateDots(swiper);
-                    updateButtons(swiper);
                 },
                 resize(swiper) {
                     toggleControls(swiper);
-                    updateButtons(swiper);
                 },
                 lock(swiper) {
                     toggleControls(swiper);
@@ -453,22 +460,68 @@
                 }
             }
         });
-        function updateDots(swiper) {
-            dots.forEach((dot => dot.classList.remove("active")));
-            if (!dots.length) return;
-            const activeDot = swiper.realIndex % dotsCount;
-            dots[activeDot]?.classList.add("active");
-        }
-        function updateButtons(swiper) {
-            prevBtn.classList.toggle("is-disabled", swiper.isBeginning);
-            nextBtn.classList.toggle("is-disabled", swiper.isEnd);
-        }
         function toggleControls(swiper) {
             const hide = swiper.isLocked;
             pagination.style.display = hide ? "none" : "";
             prevBtn.style.display = hide ? "none" : "";
             nextBtn.style.display = hide ? "none" : "";
         }
+    }));
+    document.addEventListener("DOMContentLoaded", (() => {
+        const sections = document.querySelectorAll(".services-tabs");
+        if (!sections.length) return;
+        sections.forEach((section => {
+            const tabs = section.querySelectorAll(".services-tabs__tab");
+            const panes = section.querySelectorAll(".services-tabs__pane");
+            if (!tabs.length || !panes.length) return;
+            tabs.forEach((tab => {
+                tab.addEventListener("click", (() => {
+                    const id = tab.dataset.tab;
+                    if (tab.classList.contains("active")) return;
+                    tabs.forEach((btn => {
+                        btn.classList.remove("active");
+                    }));
+                    tab.classList.add("active");
+                    panes.forEach((pane => {
+                        if (pane.dataset.content === id) {
+                            pane.style.display = "block";
+                            requestAnimationFrame((() => {
+                                pane.classList.add("active");
+                            }));
+                        } else {
+                            pane.classList.remove("active");
+                            setTimeout((() => {
+                                if (!pane.classList.contains("active")) pane.style.display = "none";
+                            }), 250);
+                        }
+                    }));
+                }));
+            }));
+            panes.forEach(((pane, index) => {
+                if (index === 0) {
+                    pane.style.display = "block";
+                    requestAnimationFrame((() => {
+                        pane.classList.add("active");
+                    }));
+                } else pane.style.display = "none";
+            }));
+        }));
+    }));
+    document.addEventListener("DOMContentLoaded", (() => {
+        function isInViewport(element) {
+            const rect = element.getBoundingClientRect();
+            return rect.top <= window.innerHeight && rect.bottom >= 0;
+        }
+        function handleScroll() {
+            document.querySelectorAll(".animate").forEach((element => {
+                if (isInViewport(element)) {
+                    element.classList.add("active");
+                    element.classList.remove("animate");
+                }
+            }));
+        }
+        window.addEventListener("scroll", handleScroll);
+        handleScroll();
     }));
     window["FLS"] = true;
 })();
