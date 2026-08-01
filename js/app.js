@@ -45,14 +45,6 @@
             updateTimeline();
         }));
     }));
-    if ("scrollRestoration" in history) history.scrollRestoration = "manual";
-    window.addEventListener("load", (() => {
-        window.scrollTo({
-            top: 0,
-            left: 0,
-            behavior: "instant"
-        });
-    }));
     document.addEventListener("DOMContentLoaded", (() => {
         const header = document.querySelector(".header");
         if (!header) return;

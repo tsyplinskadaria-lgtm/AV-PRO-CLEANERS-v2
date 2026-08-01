@@ -3145,6 +3145,74 @@ span {
   line-height: 1.5;
   color: #6f7892
 }
+.locations-page .locations-sec {
+  padding: 80px 0
+}
+.locations-page .locations-sec__blocks {
+  display: flex;
+  flex-direction: column;
+  gap: 50px;
+  max-width: 1100px;
+  width: 100%;
+  margin: 0 auto
+}
+.locations-page .locations-sec__block {
+  display: flex;
+  flex-direction: column;
+  gap: 30px
+}
+.locations-page .locations-sec__items {
+  display: flex;
+  flex-wrap: wrap;
+  row-gap: 20px;
+  -webkit-column-gap: 30px;
+  -moz-column-gap: 30px;
+  column-gap: 30px;
+  align-items: center;
+  justify-content: center
+}
+.locations-page .locations-sec__item {
+  background-color: #f5f7f8;
+  font-size: 16px;
+  border-radius: 24px;
+  padding: 12px 20px 12px 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: Outfit,sans-serif;
+  font-weight: 300;
+  transition: .3s ease-in-out;
+  opacity: 0;
+  -webkit-transform: translateY(80px);
+  transform: translateY(80px);
+  transition: opacity .8s ease,-webkit-transform .8s cubic-bezier(.22,1,.36,1);
+  transition: opacity .8s ease,transform .8s cubic-bezier(.22,1,.36,1);
+  transition: opacity .8s ease,transform .8s cubic-bezier(.22,1,.36,1),-webkit-transform .8s cubic-bezier(.22,1,.36,1)
+}
+.locations-page .locations-sec__item.active {
+  opacity: 1;
+  -webkit-transform: translateY(0);
+  transform: translateY(0)
+}
+.locations-page .locations-sec__item:hover {
+  -webkit-transform: scale(.9);
+  transform: scale(.9);
+  background-color: rgba(159,184,207,.5058823529)
+}
+.locations-page .locations-sec .circle {
+  min-width: 24px;
+  width: 24px;
+  height: 24px;
+  background-color: #9fb8cf;
+  display: flex;
+  align-items: center;
+  border-radius: 15px;
+  justify-content: center
+}
+.locations-page .locations-sec .circle i {
+  color: #fff;
+  font-size: 12px
+}
 .pages {
   margin-top: 100px
 }
@@ -4475,6 +4543,13 @@ span {
     line-height: 36px;
     font-size: 30px
   }
+  .locations-page .locations-sec__items {
+    gap: 20px
+  }
+  .locations-page .locations-sec__item {
+    font-size: 14px;
+    padding: 8px 15px 8px 10px
+  }
   .about .text-block h2,
   .about .text-block h3,
   .about .text-block h4,
@@ -5281,6 +5356,9 @@ span {
   .review-slide__text {
     font-size: 14px
   }
+  .locations-page .locations-sec {
+    padding: 40px 0
+  }
   .pages .cards {
     padding: 40px 0 60px 0
   }
@@ -5424,6 +5502,18 @@ span {
   .swiper-pagination .swiper-pagination-bullet-active {
     width: 16px
   }
+  .locations-page .locations-sec__item {
+    gap: 8px;
+    padding: 8px 10px 8px 10px
+  }
+  .locations-page .locations-sec .circle {
+    min-width: 20px;
+    width: 20px;
+    height: 20px
+  }
+  .locations-page .locations-sec .circle i {
+    font-size: 10px
+  }
   .pages .pic {
     height: 240px
   }
@@ -5476,6 +5566,9 @@ span {
   }
   .review-slide__info .name {
     font-size: 14px
+  }
+  .locations-page .locations-sec__items {
+    gap: 15px
   }
   .pages .head {
     margin: 0 0
